@@ -1,0 +1,34 @@
+name: plato-production-backend to EC2
+
+on:
+  push:
+    branches: [ "production" ]
+  pull_request:
+    branches: [ "production" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    
+    steps:
+    - uses: actions/checkout@v2
+
+
+  Deploy:
+      needs: build
+      runs-on: ubuntu-20.04
+      
+      steps:
+        - uses: actions/checkout@v2 
+        - name: Configure SSH
+          uses: appleboy/ssh-action@v0.1.7
+          with:
+            host: ${{ secrets.PROD_HOST }}
+            username: ${{ secrets.USERNAME }}
+            key: ${{ secrets.KEY }}
+            port: ${{ secrets.PORT }}
+            script: |
+              cd plato-subscriptions/libs/shared/backend/plato-api-app/
+              git pull
+              sudo npm i --legacy-peer-deps
+              forever restart index.js
